@@ -43,10 +43,20 @@ public class RestfulFiles implements Provider<Source>{
     private WebServiceContext ws_ctx;
     
     private final Map<String, File> files_map; 
+    private final String filesDirectory = "files\\";
+    private final File directory = new File(filesDirectory);
 
     
     public RestfulFiles(){
         files_map = new HashMap();
+        
+        if(!directory.exists())
+            directory.mkdir();
+        
+        File[] files = directory.listFiles();
+        for(File file : files){
+            files_map.put(file.getName(), file);
+        }
     }
     
     @Override
@@ -116,7 +126,7 @@ public class RestfulFiles implements Provider<Source>{
             stream = encode_to_stream(HttpURLConnection.HTTP_OK);
         }else{
             System.out.println("Criando arquivo " + name);
-            files_map.put(name, new File(name));
+            files_map.put(name, new File(filesDirectory + name));
             writeOnFile(files_map.get(name), "");
             stream = encode_to_stream(HttpURLConnection.HTTP_CREATED);
         }
@@ -140,6 +150,7 @@ public class RestfulFiles implements Provider<Source>{
         
         if(files_map.containsKey(name)){
             System.out.println("Deletando o arquivo " + name);
+            files_map.get(name).delete();
             files_map.remove(name);
             stream = encode_to_stream(HttpURLConnection.HTTP_OK);
         }else{
@@ -184,9 +195,9 @@ public class RestfulFiles implements Provider<Source>{
            System.out.println("NULL");
            return;
        }
+       
         OutputStream out;
         try {
-            
             out = new FileOutputStream(file);
             Writer writer = new BufferedWriter(new OutputStreamWriter(out, "utf-8"));
             writer.write(content);
